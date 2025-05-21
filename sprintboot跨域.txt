@@ -1,0 +1,133 @@
+方法一：基于@CrossOrigin配置
+@CrossOrigin注解源码
+
+package org.springframework.web.bind.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import org.springframework.core.annotation.AliasFor;
+
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface CrossOrigin {
+    /** @deprecated */
+    @Deprecated
+    String[] DEFAULT_ORIGINS = new String[]{"*"};
+    /** @deprecated */
+    @Deprecated
+    String[] DEFAULT_ALLOWED_HEADERS = new String[]{"*"};
+    /** @deprecated */
+    @Deprecated
+    boolean DEFAULT_ALLOW_CREDENTIALS = true;
+    /** @deprecated */
+    @Deprecated
+    long DEFAULT_MAX_AGE = 1800L;
+
+    @AliasFor("origins")
+    String[] value() default {};
+
+    @AliasFor("value")
+    String[] origins() default {};
+
+    String[] allowedHeaders() default {};
+
+    String[] exposedHeaders() default {};
+
+    RequestMethod[] methods() default {};
+
+    String allowCredentials() default "";
+
+    long maxAge() default -1L;
+}
+使用示例
+
+@RestController
+public class HiController {
+	@CrossOrigin(value = "http://localhost:8080")
+    @RequestMapping(value = "/hi", method = RequestMethod.GET)
+    public String callHi() {
+        return "hi";
+    }
+}
+在Controller层在某个方法上通过配置@CrossOrigin注解配置接受http://localhost:8080的请求，这种有局限性，且每个方法都得配置该注解。
+
+方法二：基于CorsFilter过滤器
+@Configuration
+public class GlobalCorsConfig {
+    @Bean
+    public CorsFilter corsFilter() {
+    	//new一个CorsConfiguration对象用于CORS配置信息
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+          //允许所有域的请求
+          corsConfiguration.addAllowedOrigin("*");
+          //允许请求携带认证信息（cookies）
+          corsConfiguration.setAllowCredentials(true);
+          //允许所有的请求方法
+          corsConfiguration.addAllowedMethod("*");
+          //允许所有的请求头
+          corsConfiguration.addAllowedHeader("*");
+          //允许暴露所有头部信息
+          corsConfiguration.addExposedHeader("*");
+
+		//添加映射路径
+        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+
+		//返回新的CorsFilter对象
+        return new CorsFilter(urlBasedCorsConfigurationSource);
+    }
+}
+
+或写成
+
+@ConfigurationProperties("cors-config")
+public class CorsConfig {
+    private CorsConfiguration buildCorsConfiguration() {
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.addAllowedOrigin("*");
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
+        return corsConfiguration;
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", buildCorsConfiguration());
+        return new CorsFilter(source);
+    }
+}
+方法三：基于WebMvcConfigurerAdapter全局配置
+在启动类加：
+
+public class Application extends WebMvcConfigurerAdapter {  
+
+    @Override  
+    public void addCorsMappings(CorsRegistry registry) {  
+        registry.addMapping("/**")  
+                .allowCredentials(true)  
+                .allowedHeaders("*")  
+                .allowedOrigins("*")  
+                .allowedMethods("*");  
+    }  
+}  
+或配置文件形式
+
+@Configuration
+public class CorsConfig extends WebMvcConfigurerAdapter {
+	@Override
+	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/**")
+				.allowedOrigins("*")
+				.allowedMethods("GET", "HEAD", "POST","PUT", "DELETE", "OPTIONS")
+				.allowCredentials(true)
+				.maxAge(3600);
+	}
+}
+总结
+  一般SpringBoot中解决跨域用方法二和方法三，即为粗粒度，全局性配置。如果有特殊的细粒度控制到某个方法接受某域的请求，可以使用方法一。
