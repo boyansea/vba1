@@ -1,0 +1,527 @@
+' 定义表结构对象
+Type TableDefinition
+    ItemKey As Integer
+    ItemId As String
+    DataType As String
+    DataLength As Integer
+    DecimalLength As Integer
+    IsNotNull As Boolean
+    IsPrimaryKey As Boolean
+    DefaultValue As String
+    RandomValue As String
+    CreateDataOkFlg As Boolean
+End Type
+
+
+
+Function isExistsVal(inVal As String, allItemDict As Object) As Boolean
+    If allItemDict.exists(inVal) Then
+        isExistsVal = False
+        Exit Function
+    End If
+    isExistsVal = True
+End Function
+
+
+Function writeCsv(csvData As String, csvLineDict As Object)
+
+    Dim csvLine As String: csvLine = ""
+    Dim key As Variant
+    For Each key In csvLineDict
+        csvLine = csvLine & csvLineDict(key) & ","
+    Next key
+   
+    ' 去掉最后一个逗号
+    If Len(csvLine) > 0 Then csvLine = Left(csvLine, Len(csvLine) - 1)
+       
+    ' 打开文件进行写入
+    csvData = csvData & csvLine & vbCrLf
+   
+End Function
+
+
+Function getTableInfo(lastRow As Long, result() As TableDefinition)
+    Dim ws As Worksheet
+    Dim i As Long
+    Dim itemNo As Integer
+    Dim tableDefs() As TableDefinition
+   
+    ' 设置目标工作表
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+   
+    Dim rangeC As Range
+    Set rangeC = ws.Range("C:C")
+    Dim rangeG As Range
+    Set rangeG = ws.Range("G:G")
+    Dim rangeH As Range
+    Set rangeH = ws.Range("H:H")
+    Dim rangeI As Range
+    Set rangeI = ws.Range("I:I")
+    Dim rangeJ As Range
+    Set rangeJ = ws.Range("J:J")
+    Dim rangeK As Range
+    Set rangeK = ws.Range("K:K")
+    Dim rangeL As Range
+    Set rangeL = ws.Range("L:L")
+   
+    Dim dataDict As Object
+   
+    ' 创建 Dictionary
+    Set dataDict = CreateObject("Scripting.Dictionary")
+   
+    ' 遍历 C 列
+    itemNo = 1
+    For i = 10 To lastRow
+        If Trim(ws.Cells(i, 3).Value) <> "" Then
+            ' 调整数组大小以匹配有效数据量
+            ReDim Preserve tableDefs(1 To itemNo)
+            tableDefs(itemNo).ItemKey = itemNo
+            tableDefs(itemNo).ItemId = Trim(rangeC.Cells(i).Value)
+            tableDefs(itemNo).DataType = Trim(rangeG.Cells(i).Value)
+            If Trim(rangeH.Cells(i).Value) <> "" Then
+                tableDefs(itemNo).DataLength = Trim(rangeH.Cells(i).Value)
+            Else
+                tableDefs(itemNo).DataLength = 0
+            End If
+            If Trim(rangeI.Cells(i).Value) <> "" Then
+                tableDefs(itemNo).DecimalLength = Trim(rangeI.Cells(i).Value)
+            Else
+                tableDefs(itemNo).DecimalLength = 0
+            End If
+            If Trim(rangeJ.Cells(i).Value) <> "" Then
+                tableDefs(itemNo).IsPrimaryKey = True
+            Else
+                tableDefs(itemNo).IsPrimaryKey = False
+            End If
+            If Trim(rangeK.Cells(i).Value) <> "" Then
+                tableDefs(itemNo).IsNotNull = True
+            Else
+                tableDefs(itemNo).IsNotNull = False
+            End If
+            tableDefs(itemNo).DefaultValue = Trim(rangeL.Cells(i).Value)
+            tableDefs(itemNo).CreateDataOkFlg = False
+            itemNo = itemNo + 1
+        End If
+    Next i
+   
+    result = tableDefs
+   
+
+End Function
+
+' 生成指定长度的随机全角字符串
+Function GenerateFullWidString(length As Integer) As String
+    Dim i As Integer
+    Dim chars As String
+    Dim result As String
+   
+    Dim fullWidLen As Integer
+   
+    fullWidLen = length \ 2
+   
+    chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン"
+    result = ""
+   
+    For i = 1 To fullWidLen
+        result = result & Mid(chars, Int((Len(chars) * Rnd) + 1), 1)
+    Next i
+   
+    If fullWidLen * 2 < length Then
+        result = result & " "
+    End If
+   
+    GenerateFullWidString = result
+End Function
+
+
+' 生成指定长度的随机半角字符串
+Function GenerateRandomString(length As Integer) As String
+    Dim i As Integer
+    Dim chars As String
+    Dim result As String
+   
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    result = ""
+   
+    For i = 1 To length
+        result = result & Mid(chars, Int((Len(chars) * Rnd) + 1), 1)
+    Next i
+   
+    GenerateRandomString = result
+End Function
+
+' 生成指定长度的随机数
+Function GenerateRandomNumber(length As Integer) As String
+    Dim i As Integer
+    Dim result As String
+   
+    result = ""
+   
+    For i = 1 To length
+        result = result & Int(Rnd() * 10) ' 生成 0-9 的随机数字
+    Next i
+   
+    GenerateRandomNumber = result
+End Function
+
+' 生成随机日期时间数据
+Function GenerateRandomDate() As String
+    Dim startDate As Date
+    Dim endDate As Date
+    Dim randomDays As Integer
+    Dim randomTime As Double
+   
+    ' 设置日期范围
+    startDate = DateSerial(2025, 1, 1) ' 2025年1月1日
+    endDate = DateSerial(2025, 12, 31) ' 2025年12月31日
+   
+    ' 生成随机天数
+    randomDays = Int(Rnd * (endDate - startDate + 1))
+   
+    ' 生成随机时间（0~1之间的随机小数，代表一天中的时间）
+    randomTime = Rnd
+   
+    ' 返回随机日期时间
+    GenerateRandomDateTime2025 = startDate + randomDays + randomTime
+    GenerateRandomDate = Format(GenerateRandomDateTime2025, "YYYY-MM-DD HH:MM:SS")
+End Function
+
+' 全角
+Function makeItemFullWidVal(itemInfo As TableDefinition) As String
+    Dim randomStr As String: randomStr = ""
+   
+    ' 确保字符串不重复
+    If itemInfo.DataType = "NUMBER" Then
+        makeItemFullWidVal = GenerateRandomNumber(itemInfo.DataLength)
+    End If
+    If itemInfo.DataType = "CHAR" Or itemInfo.DataType = "VARCHAR2" Then
+        makeItemFullWidVal = GenerateFullWidString(itemInfo.DataLength)
+    End If
+    'YYYY-MM-DD HH:MM:SS
+    If itemInfo.DataType = "DATE" Then
+        makeItemFullWidVal = GenerateRandomDate()
+    End If
+End Function
+
+' 半角
+Function makeItemVal(itemInfo As TableDefinition) As String
+    Dim randomStr As String: randomStr = ""
+   
+    ' 确保字符串不重复
+    If itemInfo.DataType = "NUMBER" Then
+        makeItemVal = GenerateRandomNumber(itemInfo.DataLength)
+    End If
+    If itemInfo.DataType = "CHAR" Or itemInfo.DataType = "VARCHAR2" Then
+        makeItemVal = GenerateRandomString(itemInfo.DataLength)
+    End If
+    'YYYY-MM-DD HH:MM:SS
+    If itemInfo.DataType = "DATE" Then
+        makeItemVal = GenerateRandomDate()
+    End If
+End Function
+
+'主key数据
+Function getOnlyPrimaryKeyRecord(itemInfo As TableDefinition) As String
+    If itemInfo.IsPrimaryKey Then
+        getFullDataRecord = makeItemVal(tableItems(i))
+    Else
+        getFullDataRecord = ""
+    End If
+End Function
+Function makePrimaryNotNullOnlyRecord(tableItems() As TableDefinition, primaryKeys As Object, csvLineDict As Object)
+
+    Dim i As Integer
+    Dim randomStr As String
+    ' 创建字典对象用于存储唯一值
+    Dim allItemDict As Object
+    Set allItemDict = CreateObject("Scripting.Dictionary")
+   
+    ' 合并主key
+    Dim primaryKeysStr As String: primaryKeysStr = ""
+   
+    'ok Data
+    Dim isOkData As Boolean: isOkData = False
+    ' 按照表变量属性生成数据
+    Do
+        primaryKeysStr = ""
+        csvLineDict.RemoveAll
+        allItemDict.RemoveAll
+        For i = 1 To UBound(tableItems)
+            Do
+                isOkData = False
+                randomStr = ""
+                If tableItems(i).IsPrimaryKey Then
+                    '主key项目重新生成
+                    randomStr = makeItemVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                    primaryKeysStr = primaryKeysStr & randomStr
+                ElseIf tableItems(i).IsNotNull Then
+                    '非空项目重新生成
+                    randomStr = makeItemVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                Else
+                    '主key和非空以外项目，空值设定
+                    randomStr = ""
+                    isOkData = True
+                End If
+            Loop Until isOkData
+            '主key,Not Null项目唯一
+            If isOkData And randomStr <> "" Then
+                ' 字典追加
+                allItemDict.Add randomStr, randomStr
+            End If
+           
+            csvLineDict.Add i, randomStr
+        Next i
+    Loop Until Not primaryKeys.exists(primaryKeysStr)
+    primaryKeys.Add primaryKeysStr, primaryKeysStr
+
+End Function
+Function makeFullByteRecord(tableItems() As TableDefinition, primaryKeys As Object, csvLineDict As Object)
+
+    Dim i As Integer
+    Dim randomStr As String
+    ' 创建字典对象用于存储唯一值
+    Dim allItemDict As Object
+    Set allItemDict = CreateObject("Scripting.Dictionary")
+   
+    ' 合并主key
+    Dim primaryKeysStr As String: primaryKeysStr = ""
+   
+    'ok Data
+    Dim isOkData As Boolean: isOkData = False
+    ' 按照表变量属性生成数据
+    Do
+        primaryKeysStr = ""
+        csvLineDict.RemoveAll
+        allItemDict.RemoveAll
+        For i = 1 To UBound(tableItems)
+            Do
+                isOkData = False
+                randomStr = ""
+                If tableItems(i).IsPrimaryKey Then
+                    '主key项目重新生成
+                    randomStr = makeItemVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                    primaryKeysStr = primaryKeysStr & randomStr
+                ElseIf tableItems(i).IsNotNull Then
+                    '非空项目重新生成
+                    randomStr = makeItemVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                ElseIf tableItems(i).CreateDataOkFlg Then
+                    '已经生成过的项目不再生成
+                    randomStr = ""
+                    isOkData = True
+                Else
+                    '未生成项目继续生成
+                    randomStr = makeItemVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                End If
+                If tableItems(i).CreateDataOkFlg = False And Not isOkData Then
+                    randomStr = ""
+                    isOkData = True
+                End If
+            Loop Until isOkData
+            '主key,Not Null项目唯一
+            If isOkData And randomStr <> "" Then
+                ' 字典追加
+                allItemDict.Add randomStr, randomStr
+                tableItems(i).CreateDataOkFlg = True
+            End If
+           
+            csvLineDict.Add i, randomStr
+        Next i
+    Loop Until Not primaryKeys.exists(primaryKeysStr)
+    primaryKeys.Add primaryKeysStr, primaryKeysStr
+
+End Function
+Function makeFullWidStrRecord(tableItems() As TableDefinition, primaryKeys As Object, csvLineDict As Object)
+
+    Dim i As Integer
+    Dim randomStr As String
+    ' 创建字典对象用于存储唯一值
+    Dim allItemDict As Object
+    Set allItemDict = CreateObject("Scripting.Dictionary")
+   
+    ' 合并主key
+    Dim primaryKeysStr As String: primaryKeysStr = ""
+   
+    'ok Data
+    Dim isOkData As Boolean: isOkData = False
+    ' 按照表变量属性生成数据
+    Do
+        primaryKeysStr = ""
+        csvLineDict.RemoveAll
+        allItemDict.RemoveAll
+        For i = 1 To UBound(tableItems)
+            Do
+                isOkData = False
+                randomStr = ""
+                If tableItems(i).IsPrimaryKey Then
+                    '主key项目重新生成
+                    randomStr = makeItemFullWidVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                    primaryKeysStr = primaryKeysStr & randomStr
+                ElseIf tableItems(i).IsNotNull Then
+                    '非空项目重新生成
+                    randomStr = makeItemFullWidVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                ElseIf tableItems(i).CreateDataOkFlg Then
+                    '已经生成过的项目不再生成
+                    randomStr = ""
+                    isOkData = True
+                Else
+                    '未生成项目继续生成
+                    randomStr = makeItemFullWidVal(tableItems(i))
+                    isOkData = isExistsVal(randomStr, allItemDict)
+                End If
+                If tableItems(i).DataType = "NUMBER" Then
+                    isOkData = True
+                    tableItems(i).CreateDataOkFlg = True
+                End If
+                If tableItems(i).CreateDataOkFlg = False And Not isOkData Then
+                    randomStr = ""
+                    isOkData = True
+                End If
+               
+            Loop Until isOkData
+            '主key,Not Null项目唯一
+            If isOkData And randomStr <> "" Then
+                ' 字典追加
+                If Not allItemDict.exists(randomStr) Then
+                    allItemDict.Add randomStr, randomStr
+                End If
+                tableItems(i).CreateDataOkFlg = True
+            End If
+           
+            csvLineDict.Add i, randomStr
+        Next i
+    Loop Until Not primaryKeys.exists(primaryKeysStr)
+    primaryKeys.Add primaryKeysStr, primaryKeysStr
+
+End Function
+
+Option Explicit
+
+
+Sub GenerateAndSaveRandomRecord()
+   
+    Dim tableItems() As TableDefinition
+   
+
+    Dim randomStr As String
+    Dim i As Integer
+    Dim FilePath As String
+    Dim fso As Object, txtFile As Object
+   
+    Dim csvData As String
+   
+   
+    Dim ws As Worksheet
+    ' 设置目标工作表
+    Set ws = ThisWorkbook.Sheets("Sheet1")
+    Dim lastRow As Long
+    ' 获取最后一行（确保数据范围）
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    ' 动态数组大小
+    ReDim projects(1 To lastRow - 1)
+   
+    Call getTableInfo(lastRow, tableItems)
+   
+    ' CSV 文件
+    FilePath = ThisWorkbook.Path & "\outPut.csv"
+    ' 创建 ADODB.Stream 以 UTF-8 编码写入 CSV
+    Dim FileStream As Object
+    Set FileStream = CreateObject("ADODB.Stream")
+    FileStream.Type = 2 ' 字符模式
+    FileStream.Charset = "UTF-8" ' 设置 UTF-8 编码
+    FileStream.Open
+   
+    ' 创建数据字典
+    Dim csvLineDict As Object
+    Set csvLineDict = CreateObject("Scripting.Dictionary")
+   
+    ' 主key数据字典
+    Dim primaryKeys As Object
+    ' 创建 Dictionary 存储唯一主键组合
+    Set primaryKeys = CreateObject("Scripting.Dictionary")
+   
+    '===主key和notnull数据生成=======start================
+    makePrimaryNotNullOnlyRecord tableItems, primaryKeys, csvLineDict
+    ' csv一件数据写出
+    writeCsv csvData, csvLineDict
+    csvLineDict.RemoveAll
+    '===主key和notnull数据生成=======start================
+   
+   
+    '===满位半角数据生成=======start================
+    ' 数据生成结束flg
+    Dim makeDataContinue As Boolean: makeDataContinue = True
+    Do
+        ' 数据生成
+        makeFullByteRecord tableItems, primaryKeys, csvLineDict
+        ' csv一件数据写出
+        writeCsv csvData, csvLineDict
+        csvLineDict.RemoveAll
+       
+        makeDataContinue = False
+        For i = 1 To UBound(tableItems)
+            If tableItems(i).CreateDataOkFlg = False Then
+                makeDataContinue = True
+            End If
+        Next i
+       
+    Loop Until Not makeDataContinue
+    '===满位数据生成=======end==================
+   
+    '===满位全角数据生成=======start================
+    Call getTableInfo(lastRow, tableItems)
+    ' 数据生成结束flg
+    makeDataContinue = True
+    Do
+        ' 数据生成
+        makeFullWidStrRecord tableItems, primaryKeys, csvLineDict
+        ' csv一件数据写出
+        writeCsv csvData, csvLineDict
+        csvLineDict.RemoveAll
+       
+        makeDataContinue = False
+        For i = 1 To UBound(tableItems)
+            If tableItems(i).CreateDataOkFlg = False Then
+                makeDataContinue = True
+            End If
+        Next i
+       
+    Loop Until Not makeDataContinue
+    '===满位数据生成=======end==================
+   
+   
+    ' 创建二进制流以去除 BOM
+    Dim BinaryStream As Object
+    Set BinaryStream = CreateObject("ADODB.Stream")
+    BinaryStream.Type = 1 ' 二进制模式
+    BinaryStream.Open
+   
+    ' 复制数据但跳过 BOM
+    FileStream.WriteText csvData
+    FileStream.Position = 3 ' 跳过 BOM（前 3 个字节）
+    FileStream.CopyTo BinaryStream
+   
+    ' 保存到文件
+    BinaryStream.SaveToFile FilePath, 2 ' 2 表示覆盖原文件
+   
+    ' 关闭流
+    FileStream.Close
+    BinaryStream.Close
+    Set FileStream = Nothing
+    Set BinaryStream = Nothing
+    MsgBox "RandomCsv：" & FilePath, vbInformation
+End Sub
+
+
+
+
+
+Private Sub CommandButton1_Click()
+    Call GenerateAndSaveRandomRecord
+End Sub
