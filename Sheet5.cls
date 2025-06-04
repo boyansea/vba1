@@ -174,7 +174,7 @@ Sub GenerateAndSaveRandomRecord()
     Call editExcel(tableItems)
         
 
-    '全項目最大桁数
+    '半角全項目最大桁数
     ThisWorkbook.Sheets("numbering").range("B:B,F:F").ClearContents
     Call getTableInfo(lastRow, tableItems)
     g_dataRowNo = 12
@@ -245,13 +245,99 @@ Sub GenerateAndSaveRandomRecord()
     Call editExcel(tableItems)
     
     
+    Dim tempValue As String
     '全角文字Spaceなし
     g_charFullNo = 1
-    ThisWorkbook.Sheets("numbering").range("B:B,F:F").ClearContents
+    ThisWorkbook.Sheets("numbering").range("B:B,D:D,F:F").ClearContents
     Call getTableInfo(lastRow, tableItems)
     g_dataRowNo = 20
     makeDataType2 tableItems
     Call editExcel(tableItems)
+    
+'    '全角文字Spaceなし
+'    g_charFullNo = 1
+'    ThisWorkbook.Sheets("numbering").range("B:B,F:F").ClearContents
+'    Call getTableInfo(lastRow, tableItems)
+'    g_dataRowNo = 20
+'    makeDataType2 tableItems
+'    Call editExcel(tableItems)
+    
+    '全角文字末尾sSpace
+    g_charFullNo = 1
+    ThisWorkbook.Sheets("numbering").range("B:B,D:D,F:F").ClearContents
+    Call getTableInfo(lastRow, tableItems)
+    g_dataRowNo = 17
+    makeDataType2 tableItems
+    
+    For i = 1 To UBound(tableItems)
+        tempVal = tableItems(i).CreateDataValue
+        If tableItems(i).DataLength = 1 Then
+        
+        ElseIf tableItems(i).DataType = "CHAR" Or tableItems(i).DataType = "VARCHAR2" Then
+            tempValue = tableItems(i).CreateDataValue
+            If Len(Trim(tableItems(i).CreateDataValue)) > 1 Then
+                tableItems(i).CreateDataValue = Mid(tempValue, 1, Len(tempValue) - 2) & " "
+            Else
+                tableItems(i).CreateDataValue = " "
+            End If
+        End If
+    Next i
+    
+    Call editExcel(tableItems)
+    
+    
+    '全角文字中间Space
+    g_charFullNo = 1
+    ThisWorkbook.Sheets("numbering").range("B:B,D:D,F:F").ClearContents
+    Call getTableInfo(lastRow, tableItems)
+    g_dataRowNo = 18
+    makeDataType2 tableItems
+    
+    For i = 1 To UBound(tableItems)
+        tempVal = tableItems(i).CreateDataValue
+        If tableItems(i).DataLength < 3 Then
+        
+        ElseIf tableItems(i).DataType = "CHAR" Or tableItems(i).DataType = "VARCHAR2" Then
+            tempValue = tableItems(i).CreateDataValue
+            If Len(Trim(tableItems(i).CreateDataValue)) > 2 Then
+                tableItems(i).CreateDataValue = Left(tempValue, 1) & " " & Mid(tempValue, 3)
+            Else
+                tableItems(i).CreateDataValue = " "
+            End If
+        End If
+    Next i
+    
+    Call editExcel(tableItems)
+    
+    '全角文字中间sSpace
+    g_charFullNo = 1
+    ThisWorkbook.Sheets("numbering").range("B:B,D:D,F:F").ClearContents
+    Call getTableInfo(lastRow, tableItems)
+    g_dataRowNo = 19
+    makeDataType2 tableItems
+    
+    For i = 1 To UBound(tableItems)
+        tempVal = tableItems(i).CreateDataValue
+        If tableItems(i).DataLength < 2 Then
+        
+        ElseIf tableItems(i).DataType = "CHAR" Or tableItems(i).DataType = "VARCHAR2" Then
+            tempValue = tableItems(i).CreateDataValue
+            If Len(Trim(tableItems(i).CreateDataValue)) > 1 Then
+                tableItems(i).CreateDataValue = " " & Mid(tempValue, 1, Len(tempValue) - 1)
+            Else
+                tableItems(i).CreateDataValue = " "
+            End If
+        End If
+    Next i
+    
+    Call editExcel(tableItems)
+    
+    
+    
+    
+    
+    
+    
     
     ' CSV 文件
     filePath = ThisWorkbook.Path & "\outPut.csv"

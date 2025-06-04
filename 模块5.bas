@@ -47,11 +47,11 @@ Function makeCharFullData(itemInfo As TableDefinition) As String
     ElseIf itemInfo.DataLength = 2 Or itemInfo.DataLength = 3 Then
         makeCharFullData = getChar2FullVal(rangeK, rangeB.Cells(3).value)
         rangeB.Cells(3).value = makeCharFullData
-        makeCharFullData = makeCharFullData & Space(itemInfo.DataLength - 2)
+        makeCharFullData = makeCharFullData & Space(itemInfo.DataLength - Len(makeCharFullData))
     ElseIf itemInfo.DataLength = 4 Or itemInfo.DataLength = 5 Then
         makeCharFullData = getChar4FullVal(rangeK, rangeB.Cells(3).value)
         rangeB.Cells(3).value = makeCharFullData
-        makeCharFullData = makeCharFullData & Space(itemInfo.DataLength - 2)
+        makeCharFullData = makeCharFullData & Space(itemInfo.DataLength - Len(makeCharFullData))
     Else
         Dim fullCharCnt As Integer
         fullCharCnt = Int(itemInfo.DataLength / 2)
